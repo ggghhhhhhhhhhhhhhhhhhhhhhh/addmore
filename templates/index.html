@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RecoverEase</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #e6f2ff; /* Light blue background */
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+    
+    h1, h2 {
+      color: #333;
+      text-align: center;
+    }
+    
+    h1 {
+      margin-top: 30px;
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 10px;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      background-color: white;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    
+    th {
+      background-color: #f8f8f8;
+      font-weight: bold;
+      color: #333;
+    }
+    
+    tr:hover {
+      background-color: #f5f5f5;
+    }
+    
+    a {
+      color: #0066cc;
+      text-decoration: none;
+    }
+    
+    a:hover {
+      text-decoration: underline;
+    }
+    
+    .btn {
+      display: inline-block;
+      padding: 8px 15px;
+      background-color: #0066cc;
+      color: white;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    
+    .btn:hover {
+      background-color: #0055aa;
+      text-decoration: none;
+    }
+    
+    .welcome-message {
+      text-align: center;
+      padding: 40px 20px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      margin: 40px auto;
+      max-width: 600px;
+    }
+  </style>
+</head>
+<body>
+  {% include 'navbar.html' %}
+  
+  <div class="container">
+    {% if current_user.is_authenticated %}
+      <h1>RecoverEase - Lost Items</h1>
+      
+      {% if lost_items %}
+        <table>
+          <tr>
+            <th>Owner Name</th>
+            <th>Description</th>
+            <th>Last Seen Location</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+          {% for item in lost_items %}
+            <tr>
+              <td>{{ item.owner_name }}</td>
+              <td>{{ item.item_desc }}</td>
+              <td>{{ item.last_seen_location }}</td>
+              <td>{{ item.status }}</td>
+              {% if item.status == 'Lost' %}
+                <td><a href="{{ url_for('main.report_found') }}" class="btn">Mark as Found</a></td>
+              {% else %}
+                <td>Resolved</td>
+              {% endif %}
+            </tr>
+          {% endfor %}
+        </table>
+      {% else %}
+        <p style="text-align: center;">No lost items reported yet.</p>
+      {% endif %}
+    {% else %}
+      <div class="welcome-message">
+        <h2>Welcome to RecoverEase</h2>
+        <p>The easiest way to recover your lost items.</p>
+        <p>Please <a href="{{ url_for('main.login') }}">login</a> or <a href="{{ url_for('main.register') }}">register</a> to access the lost items list.</p>
+      </div>
+    {% endif %}
+  </div>
+</body>
+</html>

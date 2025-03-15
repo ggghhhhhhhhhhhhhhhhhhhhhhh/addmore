@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Panel - RecoverEase</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e6f2ff;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h2, h3 {
+            color: #333;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #0066cc;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <div class="container">
+        <h2>Admin Panel - Manage Reports</h2>
+
+        <h3>Lost Items:</h3>
+        <table>
+            <tr>
+                <th>Owner Name</th>
+                <th>Item Description</th>
+                <th>Last Seen Location</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+            {% for item in lost_items %}
+            <tr>
+                <td>{{ item.owner_name }}</td>
+                <td>{{ item.item_desc }}</td>
+                <td>{{ item.last_seen_location }}</td>
+                <td>{{ item.status }}</td>
+                <td><a href="{{ url_for('main.delete_lost', id=item.id) }}">Delete</a></td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <h3>Found Items:</h3>
+        <table>
+            <tr>
+                <th>Finder Name</th>
+                <th>Item Description</th>
+                <th>Contact Info</th>
+                <th>Action</th>
+            </tr>
+            {% for item in found_items %}
+            <tr>
+                <td>{{ item.finder_name }}</td>
+                <td>{{ item.item_desc }}</td>
+                <td>{{ item.contact_info }}</td>
+                <td><a href="{{ url_for('main.delete_found', id=item.id) }}">Delete</a></td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <a href="/" class="back-link">Back to Home</a>
+    </div>
+</body>
+</html>
