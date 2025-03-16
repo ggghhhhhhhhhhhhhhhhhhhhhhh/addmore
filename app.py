@@ -135,7 +135,10 @@ def login_page():
             st.success(f"Welcome {username}!")
             st.session_state['logged_in'] = True  # Mark user as logged in
             st.session_state["is_admin"] = user[2]
-            st.experimental_rerun()  # Automatically redirect to home page
+            
+            # Redirect to Home after login
+            st.experimental_set_query_params(page="home")
+            st.experimental_rerun()  # Automatically reload the page
         else:
             st.error("Invalid username or password.")
 
