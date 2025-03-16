@@ -94,7 +94,10 @@ def main():
         st.session_state['logged_in'] = False
 
     menu = ["Home", "Login", "Register", "Report Lost", "Report Found", "Admin"]
-    choice = st.sidebar.selectbox("Menu", menu)
+    if st.session_state['logged_in']:
+        choice = st.sidebar.selectbox("Menu", menu, index=0)
+    else:
+        choice = st.sidebar.selectbox("Menu", menu)
 
     if st.session_state['logged_in'] and choice == "Home":
         home_page()
@@ -136,9 +139,8 @@ def login_page():
             st.session_state['logged_in'] = True  # Mark user as logged in
             st.session_state["is_admin"] = user[2]
             
-            # Redirect to Home after login
-            st.query_params["page"] = "home"
-            st.experimental_rerun()  # Automatically reload the page
+            # No redirection, just show home page after login
+            home_page()
         else:
             st.error("Invalid username or password.")
 
@@ -265,3 +267,4 @@ if __name__ == "__main__":
     conn.close()
 
     main()
+
