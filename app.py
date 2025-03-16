@@ -1,18 +1,82 @@
 import streamlit as st
+import sqlite3
+from sqlite3 import Connection
 
-# Sample user database
-users = {"admin": {"password": "admin123", "is_admin": True}, "user": {"password": "user123", "is_admin": False}}
+# Database Setup
+def init_db(conn: Connection):
+    conn.execute('''CREATE TABLE IF NOT EXISTS users (
+        username TEXT PRIMARY KEY,
+        password TEXT NOT NULL,
+        is_admin INTEGER NOT NULL DEFAULT 0
+    )''')
+    conn.execute('''CREATE TABLE IF NOT EXISTS lost_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        owner_name TEXT,
+        item_desc TEXT,
+        last_seen_location TEXT,
+        status TEXT
+    )''')
+    conn.execute('''CREATE TABLE IF NOT EXISTS found_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        finder_name TEXT,
+        item_desc TEXT,
+        found_location TEXT
+    )''')
+    conn.commit()
 
-# Sample data for lost and found items
-lost_items = [
-    {"owner_name": "John Doe", "item_desc": "Red backpack", "last_seen_location": "Central Park", "status": "Lost"},
-    {"owner_name": "Jane Smith", "item_desc": "Blue jacket", "last_seen_location": "Bus Station", "status": "Resolved"}
-]
+# Connect to the SQLite Database
+def get_conn():
+    return sqlite3.connect('recoverease.db')
 
-found_items = [
-    {"finder_name": "Sam", "item_desc": "Wallet", "found_location": "Coffee Shop"},
-    {"finder_name": "Alice", "item_desc": "Umbrella", "found_location": "Library"}
-]
+# Insert user into the database
+def register_user(username, password, is_admin=0):
+    conn = get_conn()
+    conn.execute('INSERT INTO users (username, password, is_admin) VALUES (?, ?, ?)', (username, password, is_admin))
+    conn.commit()
+    conn.close()
+
+# Check user credentials for login
+def check_user(username, password):
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute('SELECT * FROM users WHERE username = ? AND password = ?', (username, password))
+    user = cur.fetchone()
+    conn.close()
+    return user
+
+# Insert lost item into the database
+def report_lost_item(owner_name, item_desc, last_seen_location):
+    conn = get_conn()
+    conn.execute('INSERT INTO lost_items (owner_name, item_desc, last_seen_location, status) VALUES (?, ?, ?, ?)', 
+                 (owner_name, item_desc, last_seen_location, "Lost"))
+    conn.commit()
+    conn.close()
+
+# Insert found item into the database
+def report_found_item(finder_name, item_desc, found_location):
+    conn = get_conn()
+    conn.execute('INSERT INTO found_items (finder_name, item_desc, found_location) VALUES (?, ?, ?)', 
+                 (finder_name, item_desc, found_location))
+    conn.commit()
+    conn.close()
+
+# Fetch lost items from the database
+def fetch_lost_items():
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute('SELECT * FROM lost_items')
+    items = cur.fetchall()
+    conn.close()
+    return items
+
+# Fetch found items from the database
+def fetch_found_items():
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute('SELECT * FROM found_items')
+    items = cur.fetchall()
+    conn.close()
+    return items
 
 # Main function to handle navigation and pages
 def main():
@@ -41,7 +105,7 @@ def home_page():
     st.markdown("""
         RecoverEase is a platform to report lost and found items. Use the menu to navigate through the platform.
         """)
-    
+
 # Login Page
 def login_page():
     st.title("Login")
@@ -50,9 +114,10 @@ def login_page():
     password = st.text_input("Password", type="password")
 
     if st.button("Login"):
-        if username in users and users[username]["password"] == password:
+        user = check_user(username, password)
+        if user:
             st.success(f"Welcome {username}!")
-            st.session_state["is_admin"] = users[username]["is_admin"]
+            st.session_state["is_admin"] = user[2]
         else:
             st.error("Invalid username or password.")
 
@@ -60,15 +125,12 @@ def login_page():
 def register_page():
     st.title("Register")
 
-    st.write("""
-    Register a new account to access additional features of RecoverEase.
-    """)
-
     username = st.text_input("Enter Username")
     password = st.text_input("Enter Password", type="password")
     confirm_password = st.text_input("Confirm Password", type="password")
 
     if password == confirm_password and st.button("Register"):
+        register_user(username, password)
         st.success(f"User {username} registered successfully.")
     elif st.button("Register"):
         st.error("Passwords do not match!")
@@ -83,7 +145,7 @@ def report_lost_page():
     status = "Lost"  # Default status for lost items
 
     if st.button("Submit"):
-        lost_items.append({"owner_name": owner_name, "item_desc": item_desc, "last_seen_location": last_seen_location, "status": status})
+        report_lost_item(owner_name, item_desc, last_seen_location)
         st.success("Lost item reported successfully!")
 
     show_lost_items()
@@ -97,7 +159,7 @@ def report_found_page():
     found_location = st.text_input("Found Location")
 
     if st.button("Submit"):
-        found_items.append({"finder_name": finder_name, "item_desc": item_desc, "found_location": found_location})
+        report_found_item(finder_name, item_desc, found_location)
         st.success("Found item reported successfully!")
 
     show_found_items()
@@ -114,7 +176,8 @@ def admin_page():
 
 # Display Lost Items
 def show_lost_items():
-    if lost_items:
+    items = fetch_lost_items()
+    if items:
         st.write("""
         <table>
         <tr>
@@ -126,15 +189,15 @@ def show_lost_items():
         </tr>
         """, unsafe_allow_html=True)
         
-        for item in lost_items:
+        for item in items:
             st.write(f"""
             <tr>
-                <td>{item['owner_name']}</td>
-                <td>{item['item_desc']}</td>
-                <td>{item['last_seen_location']}</td>
-                <td>{item['status']}</td>
+                <td>{item[1]}</td>
+                <td>{item[2]}</td>
+                <td>{item[3]}</td>
+                <td>{item[4]}</td>
                 <td>
-                    {"<a href='#' class='btn'>Mark as Found</a>" if item['status'] == 'Lost' else 'Resolved'}
+                    {"<a href='#' class='btn'>Mark as Found</a>" if item[4] == 'Lost' else 'Resolved'}
                 </td>
             </tr>
             """, unsafe_allow_html=True)
@@ -145,7 +208,8 @@ def show_lost_items():
 
 # Display Found Items
 def show_found_items():
-    if found_items:
+    items = fetch_found_items()
+    if items:
         st.write("""
         <table>
         <tr>
@@ -155,12 +219,12 @@ def show_found_items():
         </tr>
         """, unsafe_allow_html=True)
 
-        for item in found_items:
+        for item in items:
             st.write(f"""
             <tr>
-                <td>{item['finder_name']}</td>
-                <td>{item['item_desc']}</td>
-                <td>{item['found_location']}</td>
+                <td>{item[1]}</td>
+                <td>{item[2]}</td>
+                <td>{item[3]}</td>
             </tr>
             """, unsafe_allow_html=True)
         
@@ -169,4 +233,9 @@ def show_found_items():
         st.write("No found items reported yet.")
 
 if __name__ == "__main__":
+    # Initialize the database
+    conn = get_conn()
+    init_db(conn)
+    conn.close()
+
     main()
