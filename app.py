@@ -93,17 +93,15 @@ def main():
     if 'logged_in' not in st.session_state:
         st.session_state['logged_in'] = False
 
-    menu = ["Home", "Login", "Register", "Report Lost", "Report Found", "Admin"]
-    if st.session_state['logged_in']:
-        choice = st.sidebar.selectbox("Menu", menu, index=0)
-    else:
-        choice = st.sidebar.selectbox("Menu", menu)
+    menu = ["Home", "Report Lost", "Report Found", "Admin"] if st.session_state['logged_in'] else ["Login", "Register"]
+    choice = st.sidebar.selectbox("Menu", menu)
 
+    # Display pages based on login state and menu choice
     if st.session_state['logged_in'] and choice == "Home":
         home_page()
-    elif choice == "Login":
+    elif not st.session_state['logged_in'] and choice == "Login":
         login_page()
-    elif choice == "Register":
+    elif not st.session_state['logged_in'] and choice == "Register":
         register_page()
     elif st.session_state['logged_in'] and choice == "Report Lost":
         report_lost_page()
@@ -121,8 +119,6 @@ def home_page():
     st.markdown("""
         RecoverEase is a platform to report lost and found items.
     """)
-
-    # Display lost items table only if the user is logged in
     show_lost_items()
 
 # Login Page
@@ -139,7 +135,7 @@ def login_page():
             st.session_state['logged_in'] = True  # Mark user as logged in
             st.session_state["is_admin"] = user[2]
             
-            # No redirection, just show home page after login
+            # Switch directly to the home page after login
             home_page()
         else:
             st.error("Invalid username or password.")
@@ -267,4 +263,3 @@ if __name__ == "__main__":
     conn.close()
 
     main()
-
