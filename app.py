@@ -14,7 +14,7 @@ def init_db(conn: Connection):
         owner_name TEXT,
         item_desc TEXT,
         last_seen_location TEXT,
-        status TEXT
+        status TEXT DEFAULT "Lost"
     )''')
     conn.execute('''CREATE TABLE IF NOT EXISTS found_items (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -44,8 +44,8 @@ def check_user(username, password):
 # Lost & Found Item Functions
 def report_lost_item(owner_name, item_desc, last_seen_location):
     conn = get_conn()
-    conn.execute('INSERT INTO lost_items (owner_name, item_desc, last_seen_location, status) VALUES (?, ?, ?, ?)',
-                 (owner_name, item_desc, last_seen_location, "Lost"))
+    conn.execute('INSERT INTO lost_items (owner_name, item_desc, last_seen_location) VALUES (?, ?, ?)',
+                 (owner_name, item_desc, last_seen_location))
     conn.commit()
     conn.close()
 
@@ -84,7 +84,7 @@ def delete_found_item(item_id):
 # Streamlit App Pages
 def main():
     st.set_page_config(page_title="RecoverEase", page_icon="🔍")
-    
+
     if "logged_in" not in st.session_state:
         st.session_state["logged_in"] = False
         st.session_state["is_admin"] = False
@@ -95,7 +95,7 @@ def main():
     choice = st.sidebar.selectbox("Menu", menu)
 
     if choice == "Home":
-        home_page()
+        home_page()    
         
     elif choice == "Login":
         login_page()
@@ -155,6 +155,7 @@ def login_page():
         
         if user:
             st.session_state["logged_in"] = True
+            # Fix applied here: explicitly cast is_admin to bool
             st.session_state["is_admin"] = bool(user[2])
             st.session_state["username"] = username
             st.success(f"Welcome back {username}!")
@@ -179,29 +180,22 @@ def register_page():
         
 def report_lost_page():
     
-    st.title("Report Lost Item")
+  st.title("Report Lost Item")
 
-    
-    owner_name = st.text_input("Owner Name")
-    
-   
-  
-item_desc=st.text_input("Item Description")
+  owner_name=st.text_input("Owner Name")
+  item_desc=st.text_input("Item Description")
+  last_seen=st.text_input("Last Seen Location")
 
-last_seen=st.text_input("Last Seen Location")
-
-if(st.button("Submit")):
-  report_lost_item(owner_name,item_desc,last_seen)
-  st.success("Lost item reported successfully!")
+  if(st.button("Submit")):
+      report_lost_item(owner_name,item_desc,last_seen)
+      st.success("Lost item reported successfully!")
 
 def report_found_page():
 
   st.title("Report Found Item")
 
   finder_name=st.text_input("Finder Name")
-
   item_desc=st.text_input("Item Description")
-
   found_loc=st.text_input("Found Location")
 
   if(st.button("Submit")):
@@ -211,7 +205,7 @@ def report_found_page():
 # Admin Page with Delete Buttons
 
 def admin_page():
-  st.title("Admin Dashboard")
+  st.title(f"Admin Dashboard - {st.session_state['username']}")
 
   # Lost Items Table with Delete Option
   show_lost_items(admin_view=True)
