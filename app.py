@@ -123,8 +123,10 @@ def login_page():
     if st.button("Login"):
         user = check_user(username, password)
         if user:
-            st.success(f"Welcome {username}!")
+            st.session_state["logged_in"] = True
             st.session_state["is_admin"] = user[2]
+            st.success(f"Welcome {username}!")
+            st.experimental_rerun()  # Automatically rerun the script to go to home
         else:
             st.error("Invalid username or password.")
 
@@ -185,18 +187,9 @@ def admin_page():
 def show_lost_items():
     items = fetch_lost_items()
     if items:
-        st.write("""
-        <table>
-        <tr>
-            <th>Owner Name</th>
-            <th>Description</th>
-            <th>Last Seen Location</th>
-            <th>Status</th>
-            <th>Action</th>
-        </tr>
-        """, unsafe_allow_html=True)
+        st.write("""<table><tr><th>Owner Name</th><th>Description</th><th>Last Seen Location</th><th>Status</th><th>Action</th></tr>""", unsafe_allow_html=True)
         
-        for i, item in enumerate(items):
+        for item in items:
             status = item[4]
             action_button = ""
             if status == "Lost":
@@ -205,15 +198,7 @@ def show_lost_items():
                     update_lost_item_status(item[0])
                     st.experimental_rerun()  # Refresh the page after updating status
 
-            st.write(f"""
-            <tr>
-                <td>{item[1]}</td>
-                <td>{item[2]}</td>
-                <td>{item[3]}</td>
-                <td>{status}</td>
-                <td>{action_button}</td>
-            </tr>
-            """, unsafe_allow_html=True)
+            st.write(f"""<tr><td>{item[1]}</td><td>{item[2]}</td><td>{item[3]}</td><td>{status}</td><td>{action_button}</td></tr>""", unsafe_allow_html=True)
             
         st.write("</table>", unsafe_allow_html=True)
     else:
@@ -223,23 +208,10 @@ def show_lost_items():
 def show_found_items():
     items = fetch_found_items()
     if items:
-        st.write("""
-        <table>
-        <tr>
-            <th>Finder Name</th>
-            <th>Description</th>
-            <th>Found Location</th>
-        </tr>
-        """, unsafe_allow_html=True)
+        st.write("""<table><tr><th>Finder Name</th><th>Description</th><th>Found Location</th></tr>""", unsafe_allow_html=True)
 
         for item in items:
-            st.write(f"""
-            <tr>
-                <td>{item[1]}</td>
-                <td>{item[2]}</td>
-                <td>{item[3]}</td>
-            </tr>
-            """, unsafe_allow_html=True)
+            st.write(f"""<tr><td>{item[1]}</td><td>{item[2]}</td><td>{item[3]}</td></tr>""", unsafe_allow_html=True)
         
         st.write("</table>", unsafe_allow_html=True)
     else:
@@ -252,3 +224,4 @@ if __name__ == "__main__":
     conn.close()
 
     main()
+
