@@ -88,24 +88,38 @@ def fetch_found_items():
 # Main function to handle navigation and pages
 def main():
     st.set_page_config(page_title="RecoverEase", page_icon="🔍")
-    menu = ["Home", "Login", "Register", "Report Lost", "Report Found", "Admin"]
-    choice = st.sidebar.selectbox("Menu", menu)
     
-    if choice == "Home":
+    if "logged_in" not in st.session_state:
+        st.session_state["logged_in"] = False
+        st.session_state["is_admin"] = False
+
+    # Show different sidebar options based on login state
+    if st.session_state["logged_in"]:
+        menu = ["Home", "Report Lost", "Report Found", "Admin", "Logout"]
+    else:
+        menu = ["Login", "Register"]
+
+    choice = st.sidebar.selectbox("Menu", menu)
+
+    if choice == "Home" and st.session_state["logged_in"]:
         home_page()
-    elif choice == "Login":
+    elif choice == "Login" and not st.session_state["logged_in"]:
         login_page()
-    elif choice == "Register":
+    elif choice == "Register" and not st.session_state["logged_in"]:
         register_page()
-    elif choice == "Report Lost":
+    elif choice == "Report Lost" and st.session_state["logged_in"]:
         report_lost_page()
-    elif choice == "Report Found":
+    elif choice == "Report Found" and st.session_state["logged_in"]:
         report_found_page()
     elif choice == "Admin" and st.session_state.get("is_admin"):
         admin_page()
+    elif choice == "Logout" and st.session_state["logged_in"]:
+        st.session_state["logged_in"] = False
+        st.session_state["is_admin"] = False
+        st.success("You have been logged out.")
+        st.sidebar.selectbox("Menu", menu)  # Refresh the sidebar
     else:
-        if choice == "Admin":
-            st.warning("Please login as an admin to access the admin panel.")
+        st.warning("Please login to access this page.")
 
 # Home Page
 def home_page():
@@ -126,7 +140,7 @@ def login_page():
         if user:
             st.session_state["logged_in"] = True
             st.session_state["is_admin"] = user[2]
-            st.success(f"Welcome {username}! Use the sidebar to navigate.")
+            st.success(f"Welcome {username}! You can now access other options from the sidebar.")
         else:
             st.error("Invalid username or password.")
 
@@ -224,4 +238,5 @@ if __name__ == "__main__":
     conn.close()
 
     main()
+
 
