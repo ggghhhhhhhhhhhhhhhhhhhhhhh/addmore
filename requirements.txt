@@ -1,2 +1,5 @@
-streamlit
-sqlite3
+
+streamlit==1.43.0
+sqlalchemy==2.0.38
+psycopg2-binary==2.9.10
+streamlit-authenticator==0.4.2
