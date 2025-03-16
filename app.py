@@ -92,6 +92,7 @@ def main():
     if "logged_in" not in st.session_state:
         st.session_state["logged_in"] = False
         st.session_state["is_admin"] = False
+        st.session_state["username"] = ""
 
     # Show all sidebar options regardless of login state
     menu = ["Login", "Register", "Home", "Report Lost", "Report Found", "Admin", "Logout"]
@@ -123,14 +124,28 @@ def main():
         if st.session_state["logged_in"]:
             st.session_state["logged_in"] = False
             st.session_state["is_admin"] = False
+            st.session_state["username"] = ""
             st.success("You have been logged out.")
 
 # Home Page
 def home_page():
-    st.title("Welcome to RecoverEase")
-    st.markdown("""
-        RecoverEase is a platform to report lost and found items. Use the menu to navigate through the platform.
-        """)
+    st.title("Home - Lost and Found Items")
+
+    if st.session_state["logged_in"]:
+        st.success(f"Welcome, {st.session_state['username']}!")
+
+        # Show lost and found items based on user role
+        if st.session_state["username"] == "admin":
+            st.subheader("Lost Items")
+            show_lost_items()
+
+            st.subheader("Found Items")
+            show_found_items()
+        else:
+            st.subheader("Lost Items")
+            show_lost_items()
+    else:
+        st.markdown("Please login to see the items.")
 
 # Login Page
 def login_page():
@@ -144,6 +159,7 @@ def login_page():
         if user:
             st.session_state["logged_in"] = True
             st.session_state["is_admin"] = user[2]
+            st.session_state["username"] = username
             st.success(f"Welcome {username}! You can now access other options from the sidebar.")
         else:
             st.error("Invalid username or password.")
@@ -242,6 +258,3 @@ if __name__ == "__main__":
     conn.close()
 
     main()
-
-
-
