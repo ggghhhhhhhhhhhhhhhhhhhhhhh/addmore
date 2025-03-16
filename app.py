@@ -2,7 +2,7 @@ import streamlit as st
 import sqlite3
 from sqlite3 import Connection
 
-# Database Setup
+# Initialize Database
 def init_db(conn: Connection):
     conn.execute('''CREATE TABLE IF NOT EXISTS users (
         username TEXT PRIMARY KEY,
@@ -24,24 +24,25 @@ def init_db(conn: Connection):
     )''')
     conn.commit()
 
-# Connect to SQLite Database
+# Database connection helper
 def get_conn():
     return sqlite3.connect('recoverease.db')
 
-# User Functions
+# User registration function
 def register_user(username, password, is_admin=0):
     conn = get_conn()
     conn.execute('INSERT INTO users (username, password, is_admin) VALUES (?, ?, ?)', (username, password, is_admin))
     conn.commit()
     conn.close()
 
+# User login check function
 def check_user(username, password):
     conn = get_conn()
     user = conn.execute('SELECT * FROM users WHERE username=? AND password=?', (username, password)).fetchone()
     conn.close()
     return user
 
-# Lost & Found Item Functions
+# Reporting lost items
 def report_lost_item(owner_name, item_desc, last_seen_location):
     conn = get_conn()
     conn.execute('INSERT INTO lost_items (owner_name, item_desc, last_seen_location) VALUES (?, ?, ?)',
@@ -49,6 +50,7 @@ def report_lost_item(owner_name, item_desc, last_seen_location):
     conn.commit()
     conn.close()
 
+# Reporting found items
 def report_found_item(finder_name, item_desc, found_location):
     conn = get_conn()
     conn.execute('INSERT INTO found_items (finder_name, item_desc, found_location) VALUES (?, ?, ?)',
@@ -56,6 +58,7 @@ def report_found_item(finder_name, item_desc, found_location):
     conn.commit()
     conn.close()
 
+# Fetching items from database
 def fetch_lost_items():
     conn = get_conn()
     items = conn.execute('SELECT * FROM lost_items').fetchall()
@@ -68,7 +71,7 @@ def fetch_found_items():
     conn.close()
     return items
 
-# Delete Items from Database
+# Deleting items from database
 def delete_lost_item(item_id):
     conn = get_conn()
     conn.execute('DELETE FROM lost_items WHERE id=?', (item_id,))
@@ -81,7 +84,7 @@ def delete_found_item(item_id):
     conn.commit()
     conn.close()
 
-# Streamlit App Pages
+# Streamlit App Main Functionality
 def main():
     st.set_page_config(page_title="RecoverEase", page_icon="🔍")
 
@@ -127,7 +130,7 @@ def main():
         st.session_state["username"] = ""
         st.success("Logged out successfully.")
 
-# Individual Page Definitions
+# Page Functions Definitions
 
 def home_page():
     st.title("RecoverEase - Home")
@@ -155,7 +158,7 @@ def login_page():
         
         if user:
             st.session_state["logged_in"] = True
-            # Fix applied here: explicitly cast is_admin to bool
+            # Correctly cast is_admin to boolean here:
             st.session_state["is_admin"] = bool(user[2])
             st.session_state["username"] = username
             st.success(f"Welcome back {username}!")
@@ -179,9 +182,7 @@ def register_page():
         st.success(f"User {username} registered successfully.")
         
 def report_lost_page():
-    
   st.title("Report Lost Item")
-
   owner_name=st.text_input("Owner Name")
   item_desc=st.text_input("Item Description")
   last_seen=st.text_input("Last Seen Location")
@@ -191,9 +192,7 @@ def report_lost_page():
       st.success("Lost item reported successfully!")
 
 def report_found_page():
-
   st.title("Report Found Item")
-
   finder_name=st.text_input("Finder Name")
   item_desc=st.text_input("Item Description")
   found_loc=st.text_input("Found Location")
@@ -202,49 +201,40 @@ def report_found_page():
       report_found_item(finder_name,item_desc,found_loc)
       st.success("Found item reported successfully!")
 
-# Admin Page with Delete Buttons
-
 def admin_page():
   st.title(f"Admin Dashboard - {st.session_state['username']}")
-
-  # Lost Items Table with Delete Option
   show_lost_items(admin_view=True)
-
-  # Found Items Table with Delete Option
   show_found_items(admin_view=True)
-
-# Display Lost Items with Optional Delete Button
 
 def show_lost_items(admin_view=False):
   items=fetch_lost_items()
-
   for item in items:
       cols=st.columns([2,2,2,1])
       cols[0].write(item[1])
       cols[1].write(item[2])
       cols[2].write(item[3])
       cols[3].write(item[4])
-
       if admin_view and cols[3].button(f"Delete Lost #{item[0]}"):
           delete_lost_item(item[0])
           st.experimental_rerun()
 
-# Display Found Items with Optional Delete Button
-
 def show_found_items(admin_view=False):
   items=fetch_found_items()
-
   for item in items:
       cols=st.columns([2,2,2])
       cols[0].write(item[1])
       cols[1].write(item[2])
       cols[2].write(item[3])
-
       if admin_view and cols[2].button(f"Delete Found #{item[0]}"):
           delete_found_item(item[0])
           st.experimental_rerun()
 
 if __name__=="__main__":
    init_db(get_conn())
+   # Create admin user with username='admin' and password='admin'
+   try:
+       register_user('admin', 'admin', is_admin=1)
+   except sqlite3.IntegrityError:
+       pass # Admin already exists
    main()
 
