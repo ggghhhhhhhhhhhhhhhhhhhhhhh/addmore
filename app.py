@@ -104,7 +104,8 @@ def main():
     elif choice == "Admin" and st.session_state.get("is_admin"):
         admin_page()
     else:
-        st.warning("Please login as an admin to access the admin panel.")
+        if choice == "Admin":
+            st.warning("Please login as an admin to access the admin panel.")
 
 # Home Page
 def home_page():
@@ -125,8 +126,7 @@ def login_page():
         if user:
             st.session_state["logged_in"] = True
             st.session_state["is_admin"] = user[2]
-            st.success(f"Welcome {username}!")
-            st.experimental_rerun()  # Automatically rerun the script to go to home
+            st.success(f"Welcome {username}! Use the sidebar to navigate.")
         else:
             st.error("Invalid username or password.")
 
@@ -196,7 +196,7 @@ def show_lost_items():
                 # Add a button with a unique key to mark as found
                 if st.button(f"Mark as Found", key=f"mark_found_{item[0]}"):
                     update_lost_item_status(item[0])
-                    st.experimental_rerun()  # Refresh the page after updating status
+                    st.success(f"Marked item ID {item[0]} as found!")
 
             st.write(f"""<tr><td>{item[1]}</td><td>{item[2]}</td><td>{item[3]}</td><td>{status}</td><td>{action_button}</td></tr>""", unsafe_allow_html=True)
             
