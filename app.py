@@ -221,46 +221,20 @@ def admin_page():
 def show_lost_items():
     items = fetch_lost_items()
     if items:
-        st.write("### Lost Items")
-        st.markdown("""
-        <style>
-            table {
-                width: 100%;
-                border-collapse: collapse;
-            }
-            th, td {
-                text-align: left;
-                padding: 8px;
-                border: 1px solid #dddddd;
-                width: 25%;  /* Ensures all columns have equal width */
-            }
-            th {
-                background-color: #f2f2f2;
-            }
-        </style>
-        """, unsafe_allow_html=True)
-
-        table_html = """
-        <table>
-        <tr>
-            <th>Owner Name</th>
-            <th>Description</th>
-            <th>Last Seen Location</th>
-            <th>Status</th>
-        </tr>
-        """
-
+        st.write("""<table><tr><th>Owner Name</th><th>Description</th><th>Last Seen Location</th><th>Status</th><th>Action</th></tr>""", unsafe_allow_html=True)
+        
         for item in items:
-            table_html += f"""
-            <tr>
-                <td>{item[1]}</td>
-                <td>{item[2]}</td>
-                <td>{item[3]}</td>
-                <td>{item[4]}</td>
-            </tr>
-            """
-        table_html += "</table>"
-        st.markdown(table_html, unsafe_allow_html=True)
+            status = item[4]
+            action_button = ""
+            if status == "Lost":
+                # Add a button with a unique key to mark as found
+                if st.button(f"Mark as Found", key=f"mark_found_{item[0]}"):
+                    update_lost_item_status(item[0])
+                    st.success(f"Marked item ID {item[0]} as found!")
+
+            st.write(f"""<tr><td>{item[1]}</td><td>{item[2]}</td><td>{item[3]}</td><td>{status}</td><td>{action_button}</td></tr>""", unsafe_allow_html=True)
+            
+        st.write("</table>", unsafe_allow_html=True)
     else:
         st.write("No lost items reported yet.")
 # Display Found Items
