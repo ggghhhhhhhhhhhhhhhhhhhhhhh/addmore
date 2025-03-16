@@ -60,6 +60,13 @@ def report_found_item(finder_name, item_desc, found_location):
     conn.commit()
     conn.close()
 
+# Update lost item status to found
+def update_lost_item_status(item_id):
+    conn = get_conn()
+    conn.execute('UPDATE lost_items SET status = "Found" WHERE id = ?', (item_id,))
+    conn.commit()
+    conn.close()
+
 # Fetch lost items from the database
 def fetch_lost_items():
     conn = get_conn()
@@ -189,16 +196,22 @@ def show_lost_items():
         </tr>
         """, unsafe_allow_html=True)
         
-        for item in items:
+        for i, item in enumerate(items):
+            status = item[4]
+            action_button = ""
+            if status == "Lost":
+                # Add a button with a unique key to mark as found
+                if st.button(f"Mark as Found", key=f"mark_found_{item[0]}"):
+                    update_lost_item_status(item[0])
+                    st.experimental_rerun()  # Refresh the page after updating status
+
             st.write(f"""
             <tr>
                 <td>{item[1]}</td>
                 <td>{item[2]}</td>
                 <td>{item[3]}</td>
-                <td>{item[4]}</td>
-                <td>
-                    {"<a href='#' class='btn'>Mark as Found</a>" if item[4] == 'Lost' else 'Resolved'}
-                </td>
+                <td>{status}</td>
+                <td>{action_button}</td>
             </tr>
             """, unsafe_allow_html=True)
             
