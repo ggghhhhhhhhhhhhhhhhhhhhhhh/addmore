@@ -93,33 +93,37 @@ def main():
         st.session_state["logged_in"] = False
         st.session_state["is_admin"] = False
 
-    # Show different sidebar options based on login state
-    if st.session_state["logged_in"]:
-        menu = ["Home", "Report Lost", "Report Found", "Admin", "Logout"]
-    else:
-        menu = ["Login", "Register"]
+    # Show all sidebar options regardless of login state
+    menu = ["Login", "Register", "Home", "Report Lost", "Report Found", "Admin", "Logout"]
 
     choice = st.sidebar.selectbox("Menu", menu)
 
-    if choice == "Home" and st.session_state["logged_in"]:
+    if choice == "Home":
         home_page()
-    elif choice == "Login" and not st.session_state["logged_in"]:
+    elif choice == "Login":
         login_page()
-    elif choice == "Register" and not st.session_state["logged_in"]:
+    elif choice == "Register":
         register_page()
-    elif choice == "Report Lost" and st.session_state["logged_in"]:
-        report_lost_page()
-    elif choice == "Report Found" and st.session_state["logged_in"]:
-        report_found_page()
-    elif choice == "Admin" and st.session_state.get("is_admin"):
-        admin_page()
-    elif choice == "Logout" and st.session_state["logged_in"]:
-        st.session_state["logged_in"] = False
-        st.session_state["is_admin"] = False
-        st.success("You have been logged out.")
-        st.sidebar.selectbox("Menu", menu)  # Refresh the sidebar
-    else:
-        st.warning("Please login to access this page.")
+    elif choice == "Report Lost":
+        if st.session_state["logged_in"]:
+            report_lost_page()
+        else:
+            st.warning("Please login to access this page.")
+    elif choice == "Report Found":
+        if st.session_state["logged_in"]:
+            report_found_page()
+        else:
+            st.warning("Please login to access this page.")
+    elif choice == "Admin":
+        if st.session_state["is_admin"]:
+            admin_page()
+        else:
+            st.warning("Admin access required.")
+    elif choice == "Logout":
+        if st.session_state["logged_in"]:
+            st.session_state["logged_in"] = False
+            st.session_state["is_admin"] = False
+            st.success("You have been logged out.")
 
 # Home Page
 def home_page():
@@ -238,5 +242,6 @@ if __name__ == "__main__":
     conn.close()
 
     main()
+
 
 
