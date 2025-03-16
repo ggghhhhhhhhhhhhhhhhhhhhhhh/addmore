@@ -88,38 +88,30 @@ def fetch_found_items():
 # Main function to handle navigation and pages
 def main():
     st.set_page_config(page_title="RecoverEase", page_icon="🔍")
-    
-    # Check if user is logged in
-    if 'logged_in' not in st.session_state:
-        st.session_state['logged_in'] = False
-
-    menu = ["Home", "Report Lost", "Report Found", "Admin"] if st.session_state['logged_in'] else ["Login", "Register"]
+    menu = ["Home", "Login", "Register", "Report Lost", "Report Found", "Admin"]
     choice = st.sidebar.selectbox("Menu", menu)
-
-    # Display pages based on login state and menu choice
-    if st.session_state['logged_in'] and choice == "Home":
+    
+    if choice == "Home":
         home_page()
-    elif not st.session_state['logged_in'] and choice == "Login":
+    elif choice == "Login":
         login_page()
-    elif not st.session_state['logged_in'] and choice == "Register":
+    elif choice == "Register":
         register_page()
-    elif st.session_state['logged_in'] and choice == "Report Lost":
+    elif choice == "Report Lost":
         report_lost_page()
-    elif st.session_state['logged_in'] and choice == "Report Found":
+    elif choice == "Report Found":
         report_found_page()
-    elif st.session_state['logged_in'] and choice == "Admin" and st.session_state.get("is_admin"):
+    elif choice == "Admin" and st.session_state.get("is_admin"):
         admin_page()
     else:
-        if not st.session_state['logged_in']:
-            st.warning("Please login to access this feature.")
+        st.warning("Please login as an admin to access the admin panel.")
 
 # Home Page
 def home_page():
     st.title("Welcome to RecoverEase")
     st.markdown("""
-        RecoverEase is a platform to report lost and found items.
-    """)
-    show_lost_items()
+        RecoverEase is a platform to report lost and found items. Use the menu to navigate through the platform.
+        """)
 
 # Login Page
 def login_page():
@@ -132,11 +124,7 @@ def login_page():
         user = check_user(username, password)
         if user:
             st.success(f"Welcome {username}!")
-            st.session_state['logged_in'] = True  # Mark user as logged in
             st.session_state["is_admin"] = user[2]
-            
-            # Switch directly to the home page after login
-            home_page()
         else:
             st.error("Invalid username or password.")
 
@@ -161,6 +149,7 @@ def report_lost_page():
     owner_name = st.text_input("Owner Name")
     item_desc = st.text_input("Item Description")
     last_seen_location = st.text_input("Last Seen Location")
+    status = "Lost"  # Default status for lost items
 
     if st.button("Submit"):
         report_lost_item(owner_name, item_desc, last_seen_location)
