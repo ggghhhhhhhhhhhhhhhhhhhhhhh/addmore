@@ -221,8 +221,32 @@ def admin_page():
 def show_lost_items():
     items = fetch_lost_items()
     if items:
-        st.write("""<table><tr><th>Owner Name</th><th>Description</th><th>Last Seen Location</th><th>Status</th><th>Action</th></tr>""", unsafe_allow_html=True)
-        
+        st.write("""
+        <style>
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 20px;
+            }
+            th, td {
+                padding: 8px 12px;
+                border: 1px solid #ddd;
+                text-align: left;
+            }
+            th {
+                background-color: #f2f2f2;
+            }
+        </style>
+        <table>
+            <tr>
+                <th>Owner Name</th>
+                <th>Description</th>
+                <th>Last Seen Location</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        """, unsafe_allow_html=True)
+
         for item in items:
             status = item[4]
             action_button = ""
@@ -232,12 +256,19 @@ def show_lost_items():
                     update_lost_item_status(item[0])
                     st.success(f"Marked item ID {item[0]} as found!")
 
-            st.write(f"""<tr><td>{item[1]}</td><td>{item[2]}</td><td>{item[3]}</td><td>{status}</td><td>{action_button}</td></tr>""", unsafe_allow_html=True)
+            st.write(f"""
+            <tr>
+                <td>{item[1]}</td>
+                <td>{item[2]}</td>
+                <td>{item[3]}</td>
+                <td>{status}</td>
+                <td>{action_button}</td>
+            </tr>
+            """, unsafe_allow_html=True)
             
         st.write("</table>", unsafe_allow_html=True)
     else:
         st.write("No lost items reported yet.")
-
 # Display Found Items
 def show_found_items():
     items = fetch_found_items()
