@@ -242,39 +242,19 @@ def show_lost_items():
 def show_found_items():
     items = fetch_found_items()
     if items:
-        st.write("""
-        <style>
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-bottom: 20px;
-            }
-            th, td {
-                padding: 8px 12px;
-                border: 1px solid #ddd;
-                text-align: left;
-            }
-            th {
-                background-color: #f2f2f2;
-            }
-        </style>
-        <table>
-            <tr>
-                <th>Finder Name</th>
-                <th>Description</th>
-                <th>Found Location</th>
-            </tr>
-        """, unsafe_allow_html=True)
+        st.write("""<table><tr><th>Finder Name</th><th>Description</th><th>Found Location</th></tr>""", unsafe_allow_html=True)
 
         for item in items:
-            st.write(f"""
-            <tr>
-                <td>{item[1]}</td>
-                <td>{item[2]}</td>
-                <td>{item[3]}</td>
-            </tr>
-            """, unsafe_allow_html=True)
+            st.write(f"""<tr><td>{item[1]}</td><td>{item[2]}</td><td>{item[3]}</td></tr>""", unsafe_allow_html=True)
         
         st.write("</table>", unsafe_allow_html=True)
     else:
         st.write("No found items reported yet.")
+
+if __name__ == "__main__":
+    # Initialize the database
+    conn = get_conn()
+    init_db(conn)
+    conn.close()
+
+    main()
