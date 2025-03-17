@@ -1,6 +1,93 @@
 import streamlit as st
 import sqlite3
 from sqlite3 import Connection
+import streamlit as st
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine
+from models import User
+
+# CSS for styling
+st.markdown("""
+    <style>
+    body {
+        background-color: #eaf6ff;
+    }
+    .title {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #1c1c1c;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .login-box {
+        width: 400px;
+        padding: 40px;
+        background-color: #ffffff;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+        margin: auto;
+    }
+    input {
+        padding: 10px;
+        margin: 10px 0;
+        width: 100%;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    }
+    .stButton button {
+        background-color: #1e90ff;
+        color: white;
+        width: 100%;
+        padding: 10px;
+        font-size: 1rem;
+        border-radius: 5px;
+        border: none;
+    }
+    .stButton button:hover {
+        background-color: #0073e6;
+    }
+    .register-link {
+        font-size: 0.9rem;
+        text-align: center;
+        margin-top: 20px;
+    }
+    .register-link a {
+        color: #0073e6;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+st.markdown("<h1 class='title'>Login to RecoverEase</h1>", unsafe_allow_html=True)
+
+# SQLAlchemy setup
+engine = create_engine('sqlite:///instance/recoverease.db')
+SessionLocal = sessionmaker(bind=engine)
+
+# Login form
+with st.container():
+    st.markdown("<div class='login-box'>", unsafe_allow_html=True)
+    
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+    
+    if st.button("Login"):
+        session = SessionLocal()
+        user = session.query(User).filter_by(username=username, password=password).first()
+        if user:
+            st.session_state.logged_in = True
+            st.session_state.current_user = username
+            st.success(f"Welcome back, {username}!")
+            st.experimental_set_query_params(page="home")
+            st.stop()
+        else:
+            st.error("Invalid username or password.")
+        session.close()
+    
+    st.markdown("</div>", unsafe_allow_html=True)
+
+# Registration link
+st.markdown("<div class='register-link'>Don't have an account? <a href='./pages/2_Register'>Register here</a></div>", unsafe_allow_html=True)
+
 
 # Initialize Database
 def init_db(conn: Connection):
